@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+import os
+import sys
+import shlex
+
+os.umask(0o002)
+
+WORK_DIR = "/work"
+
+ALLOWED = {
+    "ffmpeg": "/usr/bin/ffmpeg",
+    "ffprobe": "/usr/bin/ffprobe",
+    "sox": "/usr/bin/sox",
+    "soxi": "/usr/bin/soxi",
+    "convert": "/usr/bin/convert",
+    "identify": "/usr/bin/identify",
+    "magick": "/usr/bin/magick",
+}
+
+BUILTINS = {"ls", "get", "put", "rm", "rmdir", "rrmdir", "mkdir"}
+
+ALL_COMMANDS = sorted(list(ALLOWED.keys()) + list(BUILTINS))
+
+
+def safe_path(user_path):
+    """Resolve user_path to an absolute path under WORK_DIR.
+    Returns the resolved path or None if it escapes WORK_DIR."""
+    if not user_path:
+        return WORK_DIR
+
+    if user_path.startswith("/"):
+        joined = os.path.join(WORK_DIR, user_path.lstrip("/"))
+    else:
+        joined = os.path.join(WORK_DIR, user_path)
+
+    resolved = os.path.realpath(joined)
+
+    if resolved != WORK_DIR and not resolved.startswith(WORK_DIR + "/"):
+        return None
+
+    return resolved
+
+
+def die(msg):
+    sys.stderr.write(f"Error: {msg}\n")
+    sys.exit(1)
+
+
+def cmd_ls(args):
+    target = safe_path(args[0] if args else "")
+    if not target:
+        die("path outside /work")
+
+    if not os.path.exists(target):
+        die("no such file or directory")
+
+    if not os.path.isdir(target):
+        sys.stdout.write(os.path.basename(target) + "\n")
+        return
+
+    try:
+        entries = sorted(os.listdir(target))
+    except PermissionError:
+        die("permission denied")
+
+    for entry in entries:
+        full = os.path.join(target, entry)
+        if os.path.isdir(full):
+            entry += "/"
+        sys.stdout.write(entry + "\n")
+
+
+def cmd_get(args):
+    if not args:
+        die("usage: get <path>")
+
+    target = safe_path(args[0])
+    if not target:
+        die("path outside /work")
+
+    if not os.path.isfile(target):
+        die("no such file")
+
+    with open(target, "rb") as f:
+        while True:
+            chunk = f.read(65536)
+            if not chunk:
+                break
+            sys.stdout.buffer.write(chunk)
+
+
+def cmd_put(args):
+    if not args:
+        die("usage: put <path>")
+
+    target = safe_path(args[0])
+    if not target:
+        die("path outside /work")
+
+    parent = os.path.dirname(target)
+    if not os.path.isdir(parent):
+        die("parent directory does not exist")
+
+    with open(target, "wb") as f:
+        while True:
+            chunk = sys.stdin.buffer.read(65536)
+            if not chunk:
+                break
+            f.write(chunk)
+
+
+def cmd_rm(args):
+    if not args:
+        die("usage: rm <path>")
+
+    target = safe_path(args[0])
+    if not target:
+        die("path outside /work")
+
+    if target == WORK_DIR:
+        die("cannot remove /work")
+
+    if not os.path.exists(target):
+        die("no such file or directory")
+
+    if os.path.isdir(target):
+        die("is a directory, not removing")
+
+    os.remove(target)
+
+
+def cmd_rmdir(args):
+    if not args:
+        die("usage: rmdir <path>")
+
+    target = safe_path(args[0])
+    if not target:
+        die("path outside /work")
+
+    if target == WORK_DIR:
+        die("cannot remove /work")
+
+    if not os.path.isdir(target):
+        die("not a directory")
+
+    if os.listdir(target):
+        die("directory not empty")
+
+    os.rmdir(target)
+
+
+def cmd_rrmdir(args):
+    if not args:
+        die("usage: rrmdir <path>")
+
+    target = safe_path(args[0])
+    if not target:
+        die("path outside /work")
+
+    if target == WORK_DIR:
+        die("cannot remove /work")
+
+    if not os.path.isdir(target):
+        die("not a directory")
+
+    import shutil
+    shutil.rmtree(target)
+
+
+def cmd_mkdir(args):
+    if not args:
+        die("usage: mkdir <path>")
+
+    target = safe_path(args[0])
+    if not target:
+        die("path outside /work")
+
+    os.makedirs(target, exist_ok=True)
+
+
+def main():
+    cmd = os.environ.get("SSH_ORIGINAL_COMMAND", "").strip()
+
+    if not cmd:
+        sys.stderr.write("Usage: ssh mediaproc@host '<command> [args]'\n")
+        sys.stderr.write(f"Allowed commands: {', '.join(ALL_COMMANDS)}\n")
+        sys.exit(1)
+
+    try:
+        parts = shlex.split(cmd)
+    except ValueError as e:
+        die(f"invalid command syntax: {e}")
+
+    if not parts:
+        die("empty command")
+
+    binary = parts[0]
+    args = parts[1:]
+
+    builtins = {
+        "ls": cmd_ls,
+        "get": cmd_get,
+        "put": cmd_put,
+        "rm": cmd_rm,
+        "rmdir": cmd_rmdir,
+        "rrmdir": cmd_rrmdir,
+        "mkdir": cmd_mkdir,
+    }
+
+    if binary in builtins:
+        builtins[binary](args)
+        return
+
+    if binary not in ALLOWED:
+        die(f"'{binary}' not allowed")
+        return
+
+    os.execv(ALLOWED[binary], [binary] + args)
+
+
+if __name__ == "__main__":
+    main()
