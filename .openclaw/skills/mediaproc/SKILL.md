@@ -86,7 +86,7 @@ All paths are relative to `/work`. Traversal attempts are blocked. Absolute path
 
 | Command  | Description                                       | Example                                    |
 | -------- | ------------------------------------------------- | ------------------------------------------ |
-| `ls`     | List `/work` or a subdirectory                    | `ls` or `ls subdir`                        |
+| `ls`     | List `/work` or a subdirectory (`ls -alph` style, use `--json` for JSON) | `ls` or `ls --json subdir` |
 | `put`    | Upload file from stdin                            | `put video.mp4` (pipe file via stdin)      |
 | `get`    | Download file to stdout                           | `get output.mp4` (redirect stdout to file) |
 | `rm`     | Delete a file (not directories)                   | `rm old.mp4`                               |
@@ -158,14 +158,20 @@ ssh -p $MEDIAPROC_PORT mediaproc@$MEDIAPROC_HOST "identify /work/image.png"
 ### File management
 
 ```bash
-# List files
+# List files (ls -alph style, no . and ..)
 ssh -p $MEDIAPROC_PORT mediaproc@$MEDIAPROC_HOST "ls"
+# drwxrwxr-x   2 mediaproc mediaproc     4096 Jan 25 14:30 project1/
+# -rw-rw-r--   1 mediaproc mediaproc  1048576 Jan 25 14:32 video.mp4
 
-# Create subdirectory
-ssh -p $MEDIAPROC_PORT mediaproc@$MEDIAPROC_HOST "mkdir project1"
+# List files as JSON (use --json flag)
+ssh -p $MEDIAPROC_PORT mediaproc@$MEDIAPROC_HOST "ls --json"
+# [{"name": "video.mp4", "size": 1048576, "modified": 1706140800, "isDir": false, "mode": "rw-rw-r--", "owner": "mediaproc", "group": "mediaproc", "links": 1}, ...]
 
 # List subdirectory
 ssh -p $MEDIAPROC_PORT mediaproc@$MEDIAPROC_HOST "ls project1"
+
+# Create subdirectory
+ssh -p $MEDIAPROC_PORT mediaproc@$MEDIAPROC_HOST "mkdir project1"
 
 # Remove directory recursively
 ssh -p $MEDIAPROC_PORT mediaproc@$MEDIAPROC_HOST "rrmdir project1"

@@ -170,8 +170,21 @@ echo "=== Testing file operations ==="
 echo "hello mediaproc" | ssh_cmd_stdin "put testfile.txt"
 run_test "put file" "get testfile.txt" "hello mediaproc"
 
-# ls shows the file
+# ls shows the file (default ls -alph style)
 run_test "ls shows file" "ls" "testfile.txt"
+run_test "ls shows permissions" "ls" "rw-"
+run_test "ls shows owner" "ls" "mediaproc"
+
+# ls --json output
+run_test "ls --json valid" "ls --json" '"name"'
+run_test "ls --json has size" "ls --json" '"size"'
+run_test "ls --json has mode" "ls --json" '"mode"'
+run_test "ls --json has isDir" "ls --json" '"isDir"'
+run_test "ls --json shows file" "ls --json" '"testfile.txt"'
+
+# ls default should not have . or ..
+run_test_negative "ls no dot" "ls" '^\.\/$'
+run_test_negative "ls no dotdot" "ls" '^\.\.\/$'
 
 # mkdir
 ssh_cmd "mkdir subdir"
@@ -183,6 +196,7 @@ run_test "put in subdir" "get subdir/nested.txt" "nested content"
 
 # ls subdir
 run_test "ls subdir" "ls subdir" "nested.txt"
+run_test "ls --json subdir" "ls --json subdir" '"nested.txt"'
 
 # rm
 ssh_cmd "rm testfile.txt"

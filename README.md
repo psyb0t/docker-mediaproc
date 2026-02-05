@@ -106,7 +106,7 @@ All paths are relative to `/work`. You can't escape it - traversal attempts get 
 
 | Command  | Description                                       |
 | -------- | ------------------------------------------------- |
-| `ls`     | List `/work` or a subdirectory                    |
+| `ls`     | List `/work` or a subdirectory (`--json` for JSON output) |
 | `put`    | Upload file from stdin                            |
 | `get`    | Download file to stdout                           |
 | `rm`     | Delete a file (not directories)                   |
@@ -149,9 +149,12 @@ ssh mediaproc@host "put input.mp4" < input.mp4
 # Download a file
 ssh mediaproc@host "get output.mp4" > output.mp4
 
-# List files
+# List files (ls -alph style, without . and ..)
 ssh mediaproc@host "ls"
 ssh mediaproc@host "ls subdir"
+
+# List files as JSON
+ssh mediaproc@host "ls --json"
 
 # Create a directory
 ssh mediaproc@host "mkdir project1"
