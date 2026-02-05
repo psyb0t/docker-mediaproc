@@ -218,4 +218,4 @@ Need more? Mount your custom fonts to `/usr/share/fonts/custom` and the containe
 
 ## 📝 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under [WTFPL](LICENSE) - Do What The Fuck You Want To Public License.
