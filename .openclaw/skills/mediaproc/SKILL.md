@@ -48,6 +48,16 @@ export MEDIAPROC_PORT=2222
 
 Locked-down media processing over SSH. Uses a Python wrapper that whitelists commands - no shell access, no injection, no bullshit.
 
+## First Connection
+
+Before running any commands, you must accept the host key so it gets added to `known_hosts`. Run a simple `ls` and accept the fingerprint:
+
+```bash
+ssh -p $MEDIAPROC_PORT mediaproc@$MEDIAPROC_HOST "ls"
+```
+
+If this is the first time connecting, SSH will prompt to verify the host key. Type `yes` to accept. This only needs to happen once per host. If you skip this step, all subsequent SSH commands will fail with a host key verification error.
+
 ## How It Works
 
 All commands are executed via SSH against the mediaproc container. The container forces every connection through a Python wrapper that only allows whitelisted commands. All file paths are locked to `/work` inside the container.
