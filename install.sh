@@ -2,8 +2,20 @@
 set -e
 
 IMAGE="psyb0t/mediaproc"
-MEDIAPROC_HOME="$HOME/.mediaproc"
 INSTALL_PATH="/usr/local/bin/mediaproc"
+
+# Resolve the real user when running under sudo
+if [ -n "$SUDO_USER" ]; then
+    REAL_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    REAL_UID="$SUDO_UID"
+    REAL_GID="$SUDO_GID"
+else
+    REAL_HOME="$HOME"
+    REAL_UID=$(id -u)
+    REAL_GID=$(id -g)
+fi
+
+MEDIAPROC_HOME="$REAL_HOME/.mediaproc"
 
 mkdir -p "$MEDIAPROC_HOME/work"
 touch "$MEDIAPROC_HOME/authorized_keys"
@@ -19,8 +31,8 @@ services:
     ports:
       - "\${MEDIAPROC_PORT:-2222}:22"
     environment:
-      - MEDIAPROC_UID=$(id -u)
-      - MEDIAPROC_GID=$(id -g)
+      - MEDIAPROC_UID=${REAL_UID}
+      - MEDIAPROC_GID=${REAL_GID}
     volumes:
       - ./authorized_keys:/home/mediaproc/authorized_keys:ro
       - ./work:/work
@@ -118,6 +130,8 @@ SCRIPT
 
 sed -i "s|__MEDIAPROC_HOME__|$MEDIAPROC_HOME|g" "$INSTALL_PATH"
 chmod +x "$INSTALL_PATH"
+
+chown -R "$REAL_UID:$REAL_GID" "$MEDIAPROC_HOME"
 
 docker pull "$IMAGE"
 
