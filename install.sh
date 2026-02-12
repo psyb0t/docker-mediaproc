@@ -89,6 +89,7 @@ case "${1:-}" in
         compose down
         ;;
     upgrade)
+        sudo -v
         WAS_RUNNING=false
         if compose ps --status running 2>/dev/null | grep -q mediaproc; then
             WAS_RUNNING=true
@@ -97,15 +98,10 @@ case "${1:-}" in
                 echo "Upgrade cancelled"
                 exit 0
             fi
-            echo -n "Stopping mediaproc... "
-            compose down >/dev/null 2>&1
-            echo "done"
+            compose down
         fi
 
-        echo -n "Pulling latest image... "
-        docker pull psyb0t/mediaproc >/dev/null 2>&1
-        echo "done"
-
+        docker pull psyb0t/mediaproc
         echo "Updating mediaproc..."
         curl -fsSL https://raw.githubusercontent.com/psyb0t/docker-mediaproc/main/install.sh | sudo bash
         echo "Upgrade complete"
@@ -136,7 +132,7 @@ chmod +x "$INSTALL_PATH"
 
 chown -R "$REAL_UID:$REAL_GID" "$MEDIAPROC_HOME"
 
-docker pull "$IMAGE" >/dev/null 2>&1
+docker pull "$IMAGE"
 
 echo ""
 echo "mediaproc installed!"
