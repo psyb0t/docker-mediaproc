@@ -100,8 +100,14 @@ case "${1:-}" in
                 echo "Upgrade cancelled"
                 exit 0
             fi
-            compose down
+            echo -n "Stopping mediaproc... "
+            compose down --quiet-pull >/dev/null 2>&1
+            echo "done"
         fi
+
+        echo -n "Pulling latest image... "
+        docker pull psyb0t/mediaproc >/dev/null 2>&1
+        echo "done"
 
         echo "Updating mediaproc..."
         curl -fsSL https://raw.githubusercontent.com/psyb0t/docker-mediaproc/main/install.sh | sudo bash
@@ -133,7 +139,7 @@ chmod +x "$INSTALL_PATH"
 
 chown -R "$REAL_UID:$REAL_GID" "$MEDIAPROC_HOME"
 
-docker pull "$IMAGE"
+docker pull "$IMAGE" >/dev/null 2>&1
 
 echo ""
 echo "mediaproc installed!"
