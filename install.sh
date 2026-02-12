@@ -31,10 +31,10 @@ services:
     ports:
       - "\${MEDIAPROC_PORT:-2222}:22"
     environment:
-      - MEDIAPROC_UID=${REAL_UID}
-      - MEDIAPROC_GID=${REAL_GID}
+      - LOCKBOX_UID=${REAL_UID}
+      - LOCKBOX_GID=${REAL_GID}
     volumes:
-      - ./authorized_keys:/home/mediaproc/authorized_keys:ro
+      - ./authorized_keys:/etc/lockbox/authorized_keys:ro
       - ./work:/work
       - ./fonts:/usr/share/fonts/custom:ro
     restart: unless-stopped

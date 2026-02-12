@@ -1,39 +1,19 @@
-# 🎬 docker-mediaproc
+# docker-mediaproc
 
 [![Docker Hub](https://img.shields.io/docker/v/psyb0t/mediaproc?sort=semver&label=Docker%20Hub)](https://hub.docker.com/r/psyb0t/mediaproc)
 
-Containerized media processing tools over SSH. Drop files in, run ffmpeg/sox/imagemagick over SSH, get your shit out. No shell access, no bullshit - just a locked-down Python wrapper that only lets you run what you're supposed to run.
+Containerized media processing tools over SSH. Drop files in, run ffmpeg/sox/imagemagick over SSH, get your shit out.
 
-## ⚡ Features
+Built on top of [psyb0t/lockbox](https://github.com/psyb0t/docker-lockbox) - see that repo for the security model, file operations, path sandboxing, and all the SSH lockdown details.
+
+## Features
 
 - **FFmpeg 7.1** with frei0r, LADSPA, and LV2 plugins - video effects, audio effects, all the good shit
 - **Sox** - audio processing swiss army knife
 - **ImageMagick** - image manipulation, conversion, thumbnails, whatever
 - **2200+ fonts** - emoji, CJK, Arabic, Thai, Indic, monospace, you fuckin' name it
-- **File ops over SSH** - `put`, `get`, `ls`, `rm`, `rmdir`, `rrmdir`, `mkdir` - all locked to `/work`, no volume mount needed from remote machines
-- **Locked down** - Python wrapper validates every command, no shell access, no sneaky `&&` or `;` injection bullshit
-- **SSH key auth only** - no passwords, no keyboard-interactive, just keys like a proper setup
 
-## 📋 Table of Contents
-
-- [⚡ Features](#-features)
-- [🚀 Quick Start](#-quick-start)
-  - [install.sh (Recommended)](#installsh-recommended)
-  - [docker run](#docker-run)
-- [🎯 Allowed Commands](#-allowed-commands)
-  - [Media Tools](#media-tools)
-  - [File Operations](#file-operations)
-- [💡 Usage Examples](#-usage-examples)
-  - [Media Tools](#media-tools-1)
-  - [File Operations](#file-operations-1)
-- [📂 Volumes](#-volumes)
-- [⌨️ SSH Client Config](#️-ssh-client-config)
-- [🔨 Building](#-building)
-- [🔒 Security](#-security)
-- [🔤 Included Fonts](#-included-fonts)
-- [📝 License](#-license)
-
-## 🚀 Quick Start
+## Quick Start
 
 ### install.sh (Recommended)
 
@@ -75,20 +55,18 @@ docker run -d \
   --name mediaproc \
   --restart unless-stopped \
   -p 2222:22 \
-  -e "MEDIAPROC_UID=$(id -u)" \
-  -e "MEDIAPROC_GID=$(id -g)" \
-  -v $(pwd)/authorized_keys:/home/mediaproc/authorized_keys:ro \
+  -e "LOCKBOX_UID=$(id -u)" \
+  -e "LOCKBOX_GID=$(id -g)" \
+  -v $(pwd)/authorized_keys:/etc/lockbox/authorized_keys:ro \
   -v $(pwd)/work:/work \
   psyb0t/mediaproc
 
 ssh -p 2222 mediaproc@localhost "ffmpeg -version"
 ```
 
-## 🎯 Allowed Commands
+## Allowed Commands
 
 That's it. That's the list. Everything else gets a nice "not allowed" message.
-
-### Media Tools
 
 | Command    | Description                                  |
 | ---------- | -------------------------------------------- |
@@ -100,27 +78,15 @@ That's it. That's the list. Everything else gets a nice "not allowed" message.
 | `identify` | Image file info                              |
 | `magick`   | ImageMagick CLI                              |
 
-### File Operations
+Plus all the [lockbox file operations](https://github.com/psyb0t/docker-lockbox#file-operations) (`put`, `get`, `ls`, `rm`, `mkdir`, `rmdir`, `rrmdir`).
 
-All paths are relative to `/work`. You can't escape it - traversal attempts get blocked, absolute paths get remapped under `/work`.
-
-| Command  | Description                                       |
-| -------- | ------------------------------------------------- |
-| `ls`     | List `/work` or a subdirectory (`--json` for JSON output) |
-| `put`    | Upload file from stdin                            |
-| `get`    | Download file to stdout                           |
-| `rm`     | Delete a file (not directories)                   |
-| `mkdir`  | Create directory (recursive)                      |
-| `rmdir`  | Remove empty directory                            |
-| `rrmdir` | Remove directory and everything in it recursively |
-
-## 💡 Usage Examples
-
-### Media Tools
+## Usage Examples
 
 ```bash
-# Transcode video
+# Upload a file, process it, download the result
+ssh mediaproc@host "put input.mp4" < input.mp4
 ssh mediaproc@host "ffmpeg -i /work/input.mp4 -c:v libx264 /work/output.mp4"
+ssh mediaproc@host "get output.mp4" > output.mp4
 
 # Get video info as JSON
 ssh mediaproc@host "ffprobe -v quiet -print_format json -show_format /work/video.mp4"
@@ -138,48 +104,18 @@ ssh mediaproc@host "convert /work/input.png -resize 50% /work/output.png"
 ssh mediaproc@host "convert /work/input.jpg -thumbnail 200x200 /work/thumb.jpg"
 ```
 
-### File Operations
+## Fonts
 
-Manage files in `/work` over SSH from any machine:
+Over 2200 fonts covering pretty much every script and use case:
 
-```bash
-# Upload a file
-ssh mediaproc@host "put input.mp4" < input.mp4
+- **Core**: DejaVu, Liberation, Ubuntu, Roboto, Open Sans
+- **Emoji & CJK**: Noto Color Emoji, Noto Sans CJK (Chinese, Japanese, Korean)
+- **Monospace**: Fira Code, Hack, Inconsolata
+- **International**: Arabic, Thai, Khmer, Lao, Tibetan, Indic scripts
 
-# Download a file
-ssh mediaproc@host "get output.mp4" > output.mp4
+Need more? Mount your custom fonts to `/usr/share/fonts/custom` and the container will pick them up on startup. Font cache gets rebuilt automatically.
 
-# List files (ls -alph style, without . and ..)
-ssh mediaproc@host "ls"
-ssh mediaproc@host "ls subdir"
-
-# List files as JSON
-ssh mediaproc@host "ls --json"
-
-# Create a directory
-ssh mediaproc@host "mkdir project1"
-
-# Delete a file
-ssh mediaproc@host "rm input.mp4"
-
-# Delete an empty directory
-ssh mediaproc@host "rmdir project1"
-
-# Nuke a directory and everything in it
-ssh mediaproc@host "rrmdir project1"
-```
-
-All paths are locked to `/work`. No escape, no traversal, no bullshit.
-
-## 📂 Volumes
-
-| Path                              | Description                                               |
-| --------------------------------- | --------------------------------------------------------- |
-| `/work`                           | Input/output files - your workspace                       |
-| `/home/mediaproc/authorized_keys` | SSH public keys (mount read-only)                         |
-| `/usr/share/fonts/custom`         | Extra fonts if the 2200+ aren't enough for your fancy ass |
-
-## ⌨️ SSH Client Config
+## SSH Client Config
 
 Stop typing port numbers like it's 1995. Add this kinda shit to `~/.ssh/config`:
 
@@ -192,33 +128,13 @@ Host mediaproc
 
 Then just: `ssh mediaproc "ffmpeg -version"`
 
-## 🔨 Building
+## Building
 
 ```bash
 make build
+make test    # build + run integration tests
 ```
 
-## 🔒 Security
-
-This thing is locked the fuck down:
-
-- **No shell access** - every command goes through a Python wrapper that parses it with `shlex.split()` and executes via `os.execv()` - there is literally no shell involved at any point
-- **Whitelist only** - if the command isn't in the allowed list, it doesn't run. Period.
-- **No injection** - `&&`, `;`, `|`, `$()` and all that injection shit just becomes literal arguments to the binary. No shell means shell metacharacters are meaningless
-- **SSH key auth only** - passwords disabled, keyboard-interactive disabled
-- **No forwarding** - TCP forwarding, tunneling, agent forwarding, X11 - all disabled. This is a media processor, not your personal VPN
-
-## 🔤 Included Fonts
-
-Over 2200 fonts covering pretty much every script and use case:
-
-- **Core**: DejaVu, Liberation, Ubuntu, Roboto, Open Sans
-- **Emoji & CJK**: Noto Color Emoji, Noto Sans CJK (Chinese, Japanese, Korean)
-- **Monospace**: Fira Code, Hack, Inconsolata
-- **International**: Arabic, Thai, Khmer, Lao, Tibetan, Indic scripts
-
-Need more? Mount your custom fonts to `/usr/share/fonts/custom` and the container will pick them up on startup. Font cache gets rebuilt automatically.
-
-## 📝 License
+## License
 
 This project is licensed under [WTFPL](LICENSE) - Do What The Fuck You Want To Public License.

@@ -1,17 +1,11 @@
-FROM ubuntu:24.04
+FROM psyb0t/lockbox
 
-ARG MEDIAPROC_UID=1000
-ARG MEDIAPROC_GID=1000
+ENV LOCKBOX_USER=mediaproc
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install openssh-server, latest ffmpeg, sox, imagemagick, fonts, and effect plugins
+# Install latest ffmpeg, sox, imagemagick, fonts, and effect plugins
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        openssh-server \
-        python3 \
-        software-properties-common \
-        ca-certificates && \
+        software-properties-common && \
     add-apt-repository -y ppa:ubuntuhandbook1/ffmpeg7 && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -68,34 +62,12 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create mediaproc user
-RUN if getent group ${MEDIAPROC_GID} > /dev/null 2>&1; then \
-        groupmod -n mediaproc $(getent group ${MEDIAPROC_GID} | cut -d: -f1); \
-    else \
-        groupadd -g ${MEDIAPROC_GID} mediaproc; \
-    fi && \
-    if getent passwd ${MEDIAPROC_UID} > /dev/null 2>&1; then \
-        usermod -l mediaproc -g mediaproc -d /home/mediaproc -m $(getent passwd ${MEDIAPROC_UID} | cut -d: -f1); \
-    else \
-        useradd -m -u ${MEDIAPROC_UID} -g mediaproc -s /bin/bash mediaproc; \
-    fi
+# Custom fonts mount point
+RUN mkdir -p /usr/share/fonts/custom && \
+    chmod 755 /usr/share/fonts/custom
 
-# Setup directories and mount points
-RUN mkdir -p /var/run/sshd /work /usr/share/fonts/custom && \
-    chown mediaproc:mediaproc /work /home/mediaproc && \
-    chmod 755 /work /usr/share/fonts/custom && \
-    touch /home/mediaproc/authorized_keys && \
-    chmod 644 /home/mediaproc/authorized_keys
+# Allowed media commands
+COPY allowed.json /etc/lockbox/allowed.json
 
-# Copy configs
-COPY sshd_config /etc/ssh/sshd_config
-COPY --chmod=755 media-wrapper /usr/local/bin/media-wrapper
-COPY --chmod=755 entrypoint.sh /entrypoint.sh
-
-# Generate host keys
-RUN ssh-keygen -A
-
-EXPOSE 22
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/usr/sbin/sshd", "-D", "-e"]
+# Font cache rebuild on startup (when custom fonts are mounted)
+COPY --chmod=755 10-fontcache.sh /etc/lockbox/entrypoint.d/10-fontcache.sh

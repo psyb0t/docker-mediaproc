@@ -3,7 +3,7 @@ IMAGE_NAME := psyb0t/mediaproc
 TAG := latest
 TEST_TAG := $(TAG)-test
 
-.PHONY: build build-test clean help
+.PHONY: build build-test test clean help
 
 # Default target
 all: build
@@ -15,6 +15,10 @@ build:
 # Build the test image with -test suffix
 build-test:
 	docker build -t $(IMAGE_NAME):$(TEST_TAG) .
+
+# Build test image and run integration tests
+test: build-test
+	./test.sh
 
 # Clean up images
 clean:

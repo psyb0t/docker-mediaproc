@@ -1,0 +1,9 @@
+{
+  "ffmpeg": "/usr/bin/ffmpeg",
+  "ffprobe": "/usr/bin/ffprobe",
+  "sox": "/usr/bin/sox",
+  "soxi": "/usr/bin/soxi",
+  "convert": "/usr/bin/convert",
+  "identify": "/usr/bin/identify",
+  "magick": "/usr/bin/magick"
+}

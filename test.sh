@@ -108,10 +108,14 @@ echo ""
 echo "=== Starting container ==="
 docker run -d \
     --name "$CONTAINER" \
-    -e "MEDIAPROC_UID=$(id -u)" \
-    -e "MEDIAPROC_GID=$(id -g)" \
-    -v "$AUTHKEYS:/home/mediaproc/authorized_keys:ro" \
+    -e "LOCKBOX_UID=$(id -u)" \
+    -e "LOCKBOX_GID=$(id -g)" \
     "$IMAGE" >/dev/null
+
+# Inject authorized_keys via docker cp (works in Docker-in-Docker environments
+# where bind mounts resolve paths on the host, not in the client container)
+docker cp "$AUTHKEYS" "$CONTAINER:/etc/lockbox/authorized_keys"
+docker exec "$CONTAINER" chmod 644 /etc/lockbox/authorized_keys
 
 CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$CONTAINER")
 echo "Container IP: $CONTAINER_IP"
@@ -131,7 +135,7 @@ echo ""
 echo "=== Container debug info ==="
 docker exec "$CONTAINER" id mediaproc
 docker exec "$CONTAINER" ls -la /home/mediaproc/
-docker exec "$CONTAINER" cat /home/mediaproc/authorized_keys
+docker exec "$CONTAINER" cat /etc/lockbox/authorized_keys
 echo "--- sshd logs ---"
 docker logs "$CONTAINER" 2>&1 | tail -20
 
