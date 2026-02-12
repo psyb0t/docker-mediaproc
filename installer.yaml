@@ -1,0 +1,10 @@
+name: mediaproc
+image: psyb0t/mediaproc
+repo: psyb0t/docker-mediaproc
+
+volumes:
+  - flag: -f
+    env: FONTS_DIR
+    mount: /usr/share/fonts/custom:ro
+    default: ./fonts
+    description: Custom fonts directory

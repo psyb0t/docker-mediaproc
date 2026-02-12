@@ -3,7 +3,7 @@ IMAGE_NAME := psyb0t/mediaproc
 TAG := latest
 TEST_TAG := $(TAG)-test
 
-.PHONY: build build-test test clean help
+.PHONY: build build-test test installer clean help
 
 # Default target
 all: build
@@ -19,6 +19,11 @@ build-test:
 # Build test image and run integration tests
 test: build-test
 	./test.sh
+
+# Generate install.sh from installer.yaml using lockbox's create_installer.sh
+installer:
+	curl -fsSL https://raw.githubusercontent.com/psyb0t/docker-lockbox/main/create_installer.sh | bash -s installer.yaml > install.sh
+	chmod +x install.sh
 
 # Clean up images
 clean:

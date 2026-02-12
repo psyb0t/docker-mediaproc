@@ -32,13 +32,18 @@ ssh -p 2222 mediaproc@localhost "ffmpeg -version"
 ```
 
 ```bash
-mediaproc start           # foreground
-mediaproc start -d        # detached
-mediaproc start -d -p 22  # detached on custom port (default 2222)
-mediaproc stop            # stop
-mediaproc upgrade         # pull latest image, asks to stop/restart if running
-mediaproc status          # show status
-mediaproc logs            # show logs
+mediaproc start              # foreground
+mediaproc start -d           # detached
+mediaproc start -d -p 22    # custom port (default 2222)
+mediaproc start -d -c 4     # limit to 4 CPUs
+mediaproc start -d -r 4g    # limit to 4GB RAM
+mediaproc start -d -s 2g    # limit swap to 2GB
+mediaproc start -d -f /path/to/fonts  # custom fonts directory
+mediaproc stop               # stop
+mediaproc upgrade            # pull latest image, asks to stop/restart if running
+mediaproc uninstall          # stop and remove everything
+mediaproc status             # show status
+mediaproc logs               # show logs
 ```
 
 ### docker run
@@ -153,8 +158,9 @@ Then just: `ssh mediaproc "ffmpeg -version"`
 ## Building
 
 ```bash
-make build
-make test    # build + run integration tests
+make build       # build Docker image
+make test        # build + run integration tests
+make installer   # generate install.sh from installer.yaml
 ```
 
 ## License
