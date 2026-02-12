@@ -1,6 +1,4 @@
 #!/bin/bash
-set -e
-
 IMAGE="psyb0t/mediaproc"
 INSTALL_PATH="/usr/local/bin/mediaproc"
 
@@ -42,7 +40,6 @@ EOF
 
 cat > "$INSTALL_PATH" << 'SCRIPT'
 #!/bin/bash
-set -e
 
 MEDIAPROC_HOME="__MEDIAPROC_HOME__"
 ENV_FILE="$MEDIAPROC_HOME/.env"
@@ -101,7 +98,7 @@ case "${1:-}" in
                 exit 0
             fi
             echo -n "Stopping mediaproc... "
-            compose down --quiet-pull >/dev/null 2>&1
+            compose down >/dev/null 2>&1
             echo "done"
         fi
 
