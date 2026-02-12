@@ -49,7 +49,7 @@ If you just wanna run it raw without the install script:
 docker pull psyb0t/mediaproc
 
 cat ~/.ssh/id_rsa.pub > authorized_keys
-mkdir -p work
+mkdir -p work host_keys
 
 docker run -d \
   --name mediaproc \
@@ -58,6 +58,7 @@ docker run -d \
   -e "LOCKBOX_UID=$(id -u)" \
   -e "LOCKBOX_GID=$(id -g)" \
   -v $(pwd)/authorized_keys:/etc/lockbox/authorized_keys:ro \
+  -v $(pwd)/host_keys:/etc/lockbox/host_keys \
   -v $(pwd)/work:/work \
   psyb0t/mediaproc
 

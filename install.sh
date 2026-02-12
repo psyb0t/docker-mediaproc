@@ -15,7 +15,7 @@ fi
 
 MEDIAPROC_HOME="$REAL_HOME/.mediaproc"
 
-mkdir -p "$MEDIAPROC_HOME/work"
+mkdir -p "$MEDIAPROC_HOME/work" "$MEDIAPROC_HOME/host_keys"
 touch "$MEDIAPROC_HOME/authorized_keys"
 
 if [ ! -f "$MEDIAPROC_HOME/.env" ]; then
@@ -33,6 +33,7 @@ services:
       - LOCKBOX_GID=${REAL_GID}
     volumes:
       - ./authorized_keys:/etc/lockbox/authorized_keys:ro
+      - ./host_keys:/etc/lockbox/host_keys
       - ./work:/work
       - ./fonts:/usr/share/fonts/custom:ro
     restart: unless-stopped
