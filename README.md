@@ -79,7 +79,19 @@ That's it. That's the list. Everything else gets a nice "not allowed" message.
 | `identify` | Image file info                              |
 | `magick`   | ImageMagick CLI                              |
 
-Plus all the [lockbox file operations](https://github.com/psyb0t/docker-lockbox#file-operations) (`put`, `get`, `ls`, `rm`, `mkdir`, `rmdir`, `rrmdir`).
+### File Operations
+
+All file paths are relative to `/work`. Traversal attempts get blocked, absolute paths get remapped under `/work`.
+
+| Command  | Description                                       |
+| -------- | ------------------------------------------------- |
+| `put`    | Upload file from stdin                            |
+| `get`    | Download file to stdout                           |
+| `ls`     | List `/work` or a subdirectory (`--json` for JSON output) |
+| `rm`     | Delete a file                                     |
+| `mkdir`  | Create directory (recursive)                      |
+| `rmdir`  | Remove empty directory                            |
+| `rrmdir` | Remove directory and everything in it recursively |
 
 ## Usage Examples
 
@@ -103,6 +115,15 @@ ssh mediaproc@host "convert /work/input.png -resize 50% /work/output.png"
 
 # Create thumbnail
 ssh mediaproc@host "convert /work/input.jpg -thumbnail 200x200 /work/thumb.jpg"
+
+# List files
+ssh mediaproc@host "ls"
+ssh mediaproc@host "ls --json"
+
+# Manage files
+ssh mediaproc@host "mkdir project1"
+ssh mediaproc@host "rm output.mp4"
+ssh mediaproc@host "rrmdir project1"
 ```
 
 ## Fonts
