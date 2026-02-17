@@ -130,7 +130,7 @@ echo "=== Testing LOCKBOX_USER rename ==="
 run_test "usage shows mediaproc" "" "mediaproc@"
 docker exec "$CONTAINER" touch /work/test-owner
 docker exec "$CONTAINER" chown mediaproc:mediaproc /work/test-owner
-run_test "ls shows mediaproc owner" "ls" "mediaproc"
+run_test "list-files shows mediaproc owner" "list-files --json" "mediaproc"
 
 echo ""
 echo "=== Testing fonts ==="

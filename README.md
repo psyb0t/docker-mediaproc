@@ -88,15 +88,23 @@ That's it. That's the list. Everything else gets a nice "not allowed" message.
 
 All file paths are relative to `/work`. Traversal attempts get blocked, absolute paths get remapped under `/work`.
 
-| Command  | Description                                       |
-| -------- | ------------------------------------------------- |
-| `put`    | Upload file from stdin                            |
-| `get`    | Download file to stdout                           |
-| `ls`     | List `/work` or a subdirectory (`--json` for JSON output) |
-| `rm`     | Delete a file                                     |
-| `mkdir`  | Create directory (recursive)                      |
-| `rmdir`  | Remove empty directory                            |
-| `rrmdir` | Remove directory and everything in it recursively |
+| Command                | Description                                       |
+| ---------------------- | ------------------------------------------------- |
+| `put`                  | Upload file from stdin                            |
+| `get`                  | Download file to stdout                           |
+| `list-files`           | List directory (plain names, `--json` for detailed) |
+| `remove-file`          | Delete a file                                     |
+| `create-dir`           | Create directory (recursive)                      |
+| `remove-dir`           | Remove empty directory                            |
+| `remove-dir-recursive` | Remove directory and everything in it recursively |
+| `move-file`            | Rename or move a file                             |
+| `copy-file`            | Copy a file                                       |
+| `file-info`            | Get file metadata as JSON                         |
+| `file-exists`          | Check if file exists (exits 0 or 1)               |
+| `file-hash`            | Get SHA256 hash of a file                         |
+| `disk-usage`           | Get bytes used in path or all of `/work`          |
+| `search-files`         | Search for files matching a glob pattern          |
+| `append-file`          | Append stdin to a file                            |
 
 ## Usage Examples
 
@@ -122,13 +130,14 @@ ssh mediaproc@host "convert /work/input.png -resize 50% /work/output.png"
 ssh mediaproc@host "convert /work/input.jpg -thumbnail 200x200 /work/thumb.jpg"
 
 # List files
-ssh mediaproc@host "ls"
-ssh mediaproc@host "ls --json"
+ssh mediaproc@host "list-files"
+ssh mediaproc@host "list-files --json"
 
 # Manage files
-ssh mediaproc@host "mkdir project1"
-ssh mediaproc@host "rm output.mp4"
-ssh mediaproc@host "rrmdir project1"
+ssh mediaproc@host "create-dir project1"
+ssh mediaproc@host "move-file old.mp4 new.mp4"
+ssh mediaproc@host "remove-file output.mp4"
+ssh mediaproc@host "remove-dir-recursive project1"
 ```
 
 ## Fonts
