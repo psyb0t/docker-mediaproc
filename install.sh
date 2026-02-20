@@ -22,6 +22,8 @@ if [ ! -f "$MEDIAPROC_HOME/.env" ]; then
     cat > "$MEDIAPROC_HOME/.env" << ENVEOF
 MEDIAPROC_PORT=2222
 MEDIAPROC_FONTS_DIR=$MEDIAPROC_HOME/fonts
+MEDIAPROC_PROCESSING_UNIT=cpu
+MEDIAPROC_GPUS=all
 MEDIAPROC_CPUS=0
 MEDIAPROC_MEMORY=0
 MEDIAPROC_SWAP=0
@@ -37,6 +39,7 @@ services:
     environment:
       - LOCKBOX_UID=${REAL_UID}
       - LOCKBOX_GID=${REAL_GID}
+      - PROCESSING_UNIT=\${MEDIAPROC_PROCESSING_UNIT:-cpu}
     volumes:
       - ./authorized_keys:/etc/lockbox/authorized_keys:ro
       - ./host_keys:/etc/lockbox/host_keys
@@ -48,14 +51,53 @@ services:
     restart: unless-stopped
 EOF
 
+cat > "$MEDIAPROC_HOME/docker-compose.cuda.yml" << EOF
+services:
+  mediaproc:
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=\${MEDIAPROC_GPUS:-all}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+EOF
+
+cat > "$MEDIAPROC_HOME/docker-compose.rocm.yml" << EOF
+services:
+  mediaproc:
+    environment:
+      - HIP_VISIBLE_DEVICES=\${MEDIAPROC_GPUS:-all}
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - render
+EOF
+
 cat > "$INSTALL_PATH" << 'SCRIPT'
 #!/bin/bash
+{
 
 MEDIAPROC_HOME="__MEDIAPROC_HOME__"
 ENV_FILE="$MEDIAPROC_HOME/.env"
 
 compose() {
-    docker compose --env-file "$ENV_FILE" -f "$MEDIAPROC_HOME/docker-compose.yml" "$@"
+    . "$ENV_FILE"
+    local overlay=""
+    case "${MEDIAPROC_PROCESSING_UNIT:-cpu}" in
+        cuda*) overlay="-f $MEDIAPROC_HOME/docker-compose.cuda.yml" ;;
+        rocm*) overlay="-f $MEDIAPROC_HOME/docker-compose.rocm.yml" ;;
+    esac
+    docker compose --env-file "$ENV_FILE" -f "$MEDIAPROC_HOME/docker-compose.yml" $overlay "$@"
+}
+
+set_env() {
+    local key="$1" val="$2"
+    sed -i "/^${key}=/d" "$ENV_FILE"
+    echo "${key}=${val}" >> "$ENV_FILE"
 }
 
 # Convert size string (e.g. 4g, 512m) to bytes
@@ -79,14 +121,12 @@ compute_memswap() {
     local swap="$MEDIAPROC_SWAP"
 
     if [ "$mem" = "0" ] || [ -z "$mem" ]; then
-        sed -i '/^MEDIAPROC_MEMSWAP=/d' "$ENV_FILE"
-        echo "MEDIAPROC_MEMSWAP=0" >> "$ENV_FILE"
+        set_env MEDIAPROC_MEMSWAP 0
         return
     fi
 
     if [ "$swap" = "0" ] || [ -z "$swap" ]; then
-        sed -i '/^MEDIAPROC_MEMSWAP=/d' "$ENV_FILE"
-        echo "MEDIAPROC_MEMSWAP=$mem" >> "$ENV_FILE"
+        set_env MEDIAPROC_MEMSWAP "$mem"
         return
     fi
 
@@ -95,20 +135,21 @@ compute_memswap() {
     swap_bytes=$(to_bytes "$swap")
     total=$(( mem_bytes + swap_bytes ))
 
-    sed -i '/^MEDIAPROC_MEMSWAP=/d' "$ENV_FILE"
-    echo "MEDIAPROC_MEMSWAP=$total" >> "$ENV_FILE"
+    set_env MEDIAPROC_MEMSWAP "$total"
 }
 
 usage() {
     echo "Usage: mediaproc <command>"
     echo ""
     echo "Commands:"
-    echo "  start [-d] [-p PORT] [-f FONTS_DIR] [-c CPUS] [-r MEMORY] [-s SWAP]"
+    echo "  start [-d] [--port PORT] [-f FONTS_DIR] [--processing-unit UNIT] [--gpus GPUS] [--cpus CPUS] [--memory MEMORY] [--swap SWAP]"
     echo "                        Start mediaproc (-d for detached)"
     echo "                        -f  Custom fonts directory"
-    echo "                        -c  CPU limit (e.g. 4, 0.5) - 0 = unlimited"
-    echo "                        -r  RAM limit (e.g. 4g, 512m) - 0 = unlimited"
-    echo "                        -s  Swap limit (e.g. 2g, 512m) - 0 = no swap"
+    echo "                        --processing-unit  Processing unit (cpu, cuda, rocm)"
+    echo "                        --gpus  GPUs to expose (all, 0, 0,1, etc.)"
+    echo "                        --cpus  CPU limit (e.g. 4, 0.5) - 0 = unlimited"
+    echo "                        --memory  RAM limit (e.g. 4g, 512m) - 0 = unlimited"
+    echo "                        --swap  Swap limit (e.g. 2g, 512m) - 0 = no swap"
     echo "  stop                  Stop mediaproc"
     echo "  upgrade               Pull latest image and restart if needed"
     echo "  uninstall             Stop mediaproc and remove everything"
@@ -123,11 +164,13 @@ case "${1:-}" in
         while [ $# -gt 0 ]; do
             case "$1" in
                 -d) DETACHED=true ;;
-                -p) shift; sed -i "s/^MEDIAPROC_PORT=.*/MEDIAPROC_PORT=$1/" "$ENV_FILE" ;;
-                -f) shift; sed -i "s|^MEDIAPROC_FONTS_DIR=.*|MEDIAPROC_FONTS_DIR=$1|" "$ENV_FILE" ;;
-                -c) shift; sed -i "s/^MEDIAPROC_CPUS=.*/MEDIAPROC_CPUS=$1/" "$ENV_FILE" ;;
-                -r) shift; sed -i "s/^MEDIAPROC_MEMORY=.*/MEDIAPROC_MEMORY=$1/" "$ENV_FILE" ;;
-                -s) shift; sed -i "s/^MEDIAPROC_SWAP=.*/MEDIAPROC_SWAP=$1/" "$ENV_FILE" ;;
+                --port) shift; set_env MEDIAPROC_PORT "$1" ;;
+                -f) shift; set_env MEDIAPROC_FONTS_DIR "$1" ;;
+                --processing-unit) shift; set_env MEDIAPROC_PROCESSING_UNIT "$1" ;;
+                --gpus) shift; set_env MEDIAPROC_GPUS "$1" ;;
+                --cpus) shift; set_env MEDIAPROC_CPUS "$1" ;;
+                --memory) shift; set_env MEDIAPROC_MEMORY "$1" ;;
+                --swap) shift; set_env MEDIAPROC_SWAP "$1" ;;
             esac
             shift
         done
@@ -163,7 +206,6 @@ case "${1:-}" in
             compose down
         fi
 
-        docker pull psyb0t/mediaproc
         sudo -v
         echo "Updating mediaproc..."
         curl -fsSL https://raw.githubusercontent.com/psyb0t/docker-mediaproc/main/install.sh | sudo bash
@@ -184,7 +226,7 @@ case "${1:-}" in
         fi
 
         compose down 2>/dev/null
-        rm -f "$0"
+        sudo rm -f "$0"
 
         read -rp "Remove $MEDIAPROC_HOME? This deletes all data including work files. [y/N] " answer
         if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
@@ -205,6 +247,9 @@ case "${1:-}" in
         usage
         ;;
 esac
+
+exit
+}
 SCRIPT
 
 sed -i "s|__MEDIAPROC_HOME__|$MEDIAPROC_HOME|g" "$INSTALL_PATH"
