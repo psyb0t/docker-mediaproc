@@ -1,4 +1,4 @@
-FROM psyb0t/lockbox:v2.1.2
+FROM psyb0t/lockbox:v2.1.3
 
 ENV LOCKBOX_USER=mediaproc
 
