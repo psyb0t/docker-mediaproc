@@ -2,11 +2,22 @@
 
 ## Quick Install
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/psyb0t/docker-mediaproc/main/install.sh | sudo bash
-```
+The installer creates `~/.mediaproc/` (docker-compose, authorized_keys, work
+directory) and drops a `mediaproc` command into `/usr/local/bin`. The container
+it stands up is a [lockbox](https://github.com/psyb0t/docker-lockbox)-hardened
+SSH sandbox (key-auth, whitelisted commands only — see the Security model in
+SKILL.md).
 
-This creates `~/.mediaproc/` with docker-compose, authorized_keys, and work directory, then drops a `mediaproc` command into `/usr/local/bin`.
+Because the installer runs as **root**, pin it to a released tag and read it
+before running — don't pipe a mutable `main` branch straight into a root shell:
+
+```bash
+# Pick a released tag: https://github.com/psyb0t/docker-mediaproc/releases
+REF=vX.Y.Z
+curl -fsSL "https://raw.githubusercontent.com/psyb0t/docker-mediaproc/${REF}/install.sh" -o install.sh
+less install.sh            # review exactly what runs as root
+sudo bash install.sh
+```
 
 ## Starting
 

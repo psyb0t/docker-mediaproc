@@ -13,6 +13,26 @@ Locked-down media processing over SSH. Built on [lockbox](https://github.com/psy
 
 For installation and deployment, see [references/setup.md](references/setup.md).
 
+## Security model
+
+mediaproc is **not** a general-purpose shell. The instance runs inside a
+[lockbox](https://github.com/psyb0t/docker-lockbox)-hardened container, and this
+skill only ever talks to an instance you (or your operator) already run and trust:
+
+- **Key-auth only** — SSH accepts public-key auth only (no passwords), connecting
+  as a restricted user. There is no interactive shell and no PTY.
+- **Whitelisted binaries** — the SSH channel dispatches only a fixed allow-list
+  (`ffmpeg`, `ffprobe`, `sox`, `soxi`, `convert`, `identify`, `magick`) plus
+  lockbox's built-in, scoped file operations. Anything else is refused; the remote
+  never spawns a shell, so there is no shell-injection surface.
+- **Work-dir confined** — every path resolves under the instance work directory
+  (`/work`); traversal is blocked. The sandbox cannot read or write your host
+  filesystem.
+- **Consumer-only** — this skill moves files to/from a running instance and runs
+  the whitelisted media tools on them. It never provisions, escalates, or installs
+  anything on your machine (server setup is a separate, operator-side step — see
+  setup.md).
+
 ## SSH Wrapper
 
 Use `scripts/mediaproc.sh` for all commands. It handles host, port, and host key acceptance via `MEDIAPROC_HOST` and `MEDIAPROC_PORT` env vars.
