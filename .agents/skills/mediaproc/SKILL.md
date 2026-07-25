@@ -15,16 +15,24 @@ For installation and deployment, see [references/setup.md](references/setup.md).
 
 ## Security model
 
-mediaproc is **not** a general-purpose shell. The instance runs inside a
-[lockbox](https://github.com/psyb0t/docker-lockbox)-hardened container, and this
-skill only ever talks to an instance you (or your operator) already run and trust:
+mediaproc is **not** a general-purpose shell, and `scripts/mediaproc.sh` is **not**
+arbitrary remote code execution even though it forwards a free-form-looking command
+string. The instance runs inside a [lockbox](https://github.com/psyb0t/docker-lockbox)-
+hardened container, and this skill only ever talks to an instance you (or your
+operator) already run and trust:
 
 - **Key-auth only** — SSH accepts public-key auth only (no passwords), connecting
   as a restricted user. There is no interactive shell and no PTY.
-- **Whitelisted binaries** — the SSH channel dispatches only a fixed allow-list
-  (`ffmpeg`, `ffprobe`, `sox`, `soxi`, `convert`, `identify`, `magick`) plus
-  lockbox's built-in, scoped file operations. Anything else is refused; the remote
-  never spawns a shell, so there is no shell-injection surface.
+- **Server-side enforced allow-list, not documentation** — `scripts/mediaproc.sh`
+  passes its argument through to the SSH channel as-is, but the *remote* lockbox
+  dispatcher is what decides what runs, and it only ever executes the fixed set
+  documented below: `ffmpeg`, `ffprobe`, `sox`, `soxi`, `convert`, `identify`,
+  `magick`, plus lockbox's built-in, scoped file operations. This is an enforced
+  allow-list on the server, not a client-side convention — the wrapper cannot be
+  used to run anything outside that set. Any other command name is refused before
+  execution; the remote never spawns a shell, so there is no shell-injection
+  surface and no way to chain (`;`, `|`, `&&`, backticks, etc.) into a second
+  command.
 - **Work-dir confined** — every path resolves under the instance work directory
   (`/work`); traversal is blocked. The sandbox cannot read or write your host
   filesystem.
@@ -32,10 +40,19 @@ skill only ever talks to an instance you (or your operator) already run and trus
   the whitelisted media tools on them. It never provisions, escalates, or installs
   anything on your machine (server setup is a separate, operator-side step — see
   setup.md).
+- **You must still trust the configured host** — `MEDIAPROC_HOST`/`MEDIAPROC_PORT`
+  point at a specific instance. The allow-list constrains *what* runs, not *where*;
+  if `MEDIAPROC_HOST` is pointed at an instance you don't control, that operator
+  still sees every file you `put`/`get` and every command you send. Only point
+  this skill at a mediaproc instance you or a trusted operator run.
 
 ## SSH Wrapper
 
 Use `scripts/mediaproc.sh` for all commands. It handles host, port, and host key acceptance via `MEDIAPROC_HOST` and `MEDIAPROC_PORT` env vars.
+
+The `<command>` argument looks free-form but is not arbitrary execution: the
+remote lockbox dispatcher enforces the allow-list from the Security model above,
+server-side, on every invocation.
 
 ```bash
 scripts/mediaproc.sh <command> [args]

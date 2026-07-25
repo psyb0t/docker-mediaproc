@@ -59,3 +59,9 @@ mediaproc logs                # show container logs
 | `-c` | `MEDIAPROC_CPUS`   | `0`        | CPU limit (0 = unlimited) |
 | `-r` | `MEDIAPROC_MEMORY` | `0`        | RAM limit (0 = unlimited) |
 | `-s` | `MEDIAPROC_SWAP`   | `0`        | Swap limit (0 = no swap)  |
+
+The skill's client side (`scripts/mediaproc.sh`) connects using `MEDIAPROC_HOST` /
+`MEDIAPROC_PORT`, pointing at an instance set up as above. The server-side
+allow-list constrains which commands run, but not who you're trusting — only
+point `MEDIAPROC_HOST` at a mediaproc instance you or a trusted operator control;
+whoever runs that instance can see every file transferred through it.
