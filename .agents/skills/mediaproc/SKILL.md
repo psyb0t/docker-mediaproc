@@ -51,8 +51,12 @@ operator) already run and trust:
 Use `scripts/mediaproc.sh` for all commands. It handles host, port, and host key acceptance via `MEDIAPROC_HOST` and `MEDIAPROC_PORT` env vars.
 
 The `<command>` argument looks free-form but is not arbitrary execution: the
-remote lockbox dispatcher enforces the allow-list from the Security model above,
-server-side, on every invocation.
+wrapper does no shell evaluation of it — it passes the whole string as a single
+argument over the SSH channel — and it is the *remote* lockbox dispatcher that
+enforces the allow-list from the Security model above, server-side, on every
+invocation. There is no local or remote shell in the loop, so there's no
+injection/chaining surface (`;`, `|`, `&&`, backticks, etc. are inert; the
+dispatcher just refuses anything that isn't the fixed command name it expects).
 
 ```bash
 scripts/mediaproc.sh <command> [args]
@@ -134,6 +138,11 @@ scripts/mediaproc.sh "identify /work/image.png"
 ## File Operations
 
 All paths relative to the work directory. Traversal blocked.
+
+**Destructive.** `remove-file`, `remove-dir`, and `remove-dir-recursive`
+permanently delete data in the remote work directory — there is no trash/undo.
+`remove-dir-recursive` deletes an entire subtree in one call and is especially
+dangerous. Only run these after explicit user confirmation of the exact path.
 
 | Command                | Description                        |
 | ---------------------- | ---------------------------------- |
