@@ -3,3 +3,4 @@ CLAUDE.md
 .research_files
 git-update.sh
 commit.sh
+.telemetry/
