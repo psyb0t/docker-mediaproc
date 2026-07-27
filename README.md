@@ -167,6 +167,37 @@ Host mediaproc
 
 Then just: `ssh mediaproc "ffmpeg -version"`
 
+## Agent integrations
+
+The [skill](.agents/skills/mediaproc) works in any agent that reads `.agents/skills/`, and
+installs natively in the clients below.
+
+### Claude Code
+
+```bash
+claude plugin marketplace add psyb0t/agents
+claude plugin install mediaproc@psyb0t
+```
+
+Claude Code prompts for the mediaproc host and port at enable time.
+
+### Codex
+
+```bash
+codex plugin marketplace add psyb0t/agents
+```
+
+Codex also picks the skill up automatically in any repo containing `.agents/skills/`, and
+invokes it as `$mediaproc`.
+
+### OpenClaw
+
+The skill is published to ClawHub on every release:
+
+```bash
+openclaw skills install @psyb0t/mediaproc
+```
+
 ## Building
 
 ```bash

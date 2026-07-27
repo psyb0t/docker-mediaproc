@@ -1,0 +1,11 @@
+{
+  "name": "mediaproc",
+  "version": "2.0.10",
+  "description": "Media processing over SSH — ffmpeg, sox, and ImageMagick for video/audio transcoding and image manipulation inside a locked-down lockbox container",
+  "author": { "name": "psyb0t", "url": "https://github.com/psyb0t" },
+  "homepage": "https://github.com/psyb0t/docker-mediaproc",
+  "repository": "https://github.com/psyb0t/docker-mediaproc",
+  "license": "WTFPL",
+  "keywords": ["ffmpeg", "sox", "imagemagick", "media-processing", "ssh", "transcoding", "video", "audio"],
+  "skills": "./skills/"
+}

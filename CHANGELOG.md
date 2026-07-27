@@ -2,6 +2,13 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v2.0.10 — 2026-07-27
+
+Add agent integration manifests.
+
+- Added `.agents/.claude-plugin/plugin.json` and `.agents/.codex-plugin/plugin.json` so the existing `.agents/skills/mediaproc` skill installs natively as a plugin in Claude Code and Codex.
+- Added a README "Agent integrations" section with the install commands for Claude Code, Codex, and OpenClaw.
+
 ## v2.0.9 — 2026-07-27
 
 - Added a GitHub Actions CI status badge to the README.
