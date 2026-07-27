@@ -1,5 +1,6 @@
 # docker-mediaproc
 
+[![CI](https://github.com/psyb0t/docker-mediaproc/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/psyb0t/docker-mediaproc/actions/workflows/pipeline.yml)
 [![version](https://raw.githubusercontent.com/psyb0t/docker-mediaproc/badges/version.svg)](https://github.com/psyb0t/docker-mediaproc/releases)
 [![license](https://raw.githubusercontent.com/psyb0t/docker-mediaproc/badges/license.svg)](LICENSE)
 [![Docker Pulls](https://img.shields.io/docker/pulls/psyb0t/mediaproc?style=flat-square)](https://hub.docker.com/r/psyb0t/mediaproc)
