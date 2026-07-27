@@ -185,10 +185,12 @@ Claude Code prompts for the mediaproc host and port at enable time.
 
 ```bash
 codex plugin marketplace add psyb0t/agents
+codex plugin add mediaproc@psyb0t
 ```
 
-Codex also picks the skill up automatically in any repo containing `.agents/skills/`, and
-invokes it as `$mediaproc`.
+Installed via the marketplace, the skill invokes as `$mediaproc:mediaproc`. Codex also picks
+the skill up automatically, no install needed, in any repo containing `.agents/skills/`, where
+it invokes as plain `$mediaproc`.
 
 ### OpenClaw
 

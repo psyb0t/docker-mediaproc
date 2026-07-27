@@ -2,6 +2,13 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v2.0.11 — 2026-07-27
+
+Fix missing Codex install command in README.
+
+- The README "Agent integrations" Codex subsection was missing the actual plugin install command after the marketplace-add step. Added `codex plugin add mediaproc@psyb0t`.
+- Clarified the invocation prose: installed via the marketplace, the skill invokes as `$mediaproc:mediaproc`; picked up automatically (no install) from this repo's own `.agents/skills/` directory, it invokes as plain `$mediaproc`.
+
 ## v2.0.10 — 2026-07-27
 
 Add agent integration manifests.
