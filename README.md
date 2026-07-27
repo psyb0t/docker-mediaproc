@@ -1,6 +1,8 @@
 # docker-mediaproc
 
-[![Docker Hub](https://img.shields.io/docker/v/psyb0t/mediaproc?sort=semver&label=Docker%20Hub)](https://hub.docker.com/r/psyb0t/mediaproc)
+[![version](https://raw.githubusercontent.com/psyb0t/docker-mediaproc/badges/version.svg)](https://github.com/psyb0t/docker-mediaproc/releases)
+[![license](https://raw.githubusercontent.com/psyb0t/docker-mediaproc/badges/license.svg)](LICENSE)
+[![Docker Pulls](https://img.shields.io/docker/pulls/psyb0t/mediaproc?style=flat-square)](https://hub.docker.com/r/psyb0t/mediaproc)
 
 Containerized media processing tools over SSH. Drop files in, run ffmpeg/sox/imagemagick over SSH, get your shit out.
 
