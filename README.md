@@ -169,7 +169,7 @@ Then just: `ssh mediaproc "ffmpeg -version"`
 
 ## Agent integrations
 
-The [skill](.agents/skills/mediaproc) works in any agent that reads `.agents/skills/`, and
+The [skill](.agents/skills/mediaproc) works in any agent that reads `.agents/skills/` (such as [peen](https://github.com/psyb0t/peen)), and
 installs natively in the clients below.
 
 ### Claude Code

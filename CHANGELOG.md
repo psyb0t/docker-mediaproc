@@ -2,6 +2,10 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v2.0.13, 2026-10-10
+
+Documentation only. The README's agent integrations section names [peen](https://github.com/psyb0t/peen) as an example of an agent that reads `.agents/skills/`.
+
 ## v2.0.12 — 2026-08-01
 
 CI plumbing only. No code in this repo changed — every commit in this release touches `.github/workflows/`.
