@@ -1,6 +1,6 @@
 {
   "name": "mediaproc",
-  "description": "Media processing over SSH — ffmpeg, sox, and ImageMagick for video/audio transcoding and image manipulation inside a locked-down lockbox container",
+  "description": "Media processing over SSH: ffmpeg, sox, and ImageMagick for video/audio transcoding and image manipulation inside a locked-down lockbox container.",
   "author": { "name": "psyb0t", "url": "https://github.com/psyb0t" },
   "homepage": "https://github.com/psyb0t/docker-mediaproc",
   "license": "WTFPL",
@@ -9,7 +9,7 @@
     "host": {
       "type": "string",
       "title": "mediaproc host",
-      "description": "Hostname or IP of your running mediaproc instance (MEDIAPROC_HOST). Only point this at an instance you or a trusted operator controls — whoever runs it sees every file transferred through it.",
+      "description": "Hostname or IP of your running mediaproc instance (MEDIAPROC_HOST). Only point this at an instance you or a trusted operator controls. Whoever runs it sees every file transferred through it.",
       "required": true
     },
     "port": {
